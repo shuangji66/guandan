@@ -25,8 +25,7 @@ guandan/
 │   ├── web/                           # 前端构建产物存放目录 (编译时由 Vite 输出)
 │   │   └── (静态文件由 embed 嵌入)
 │   ├── go.mod
-│   ├── go.sum
-│   └── Makefile                       # 构建脚本（可选）
+│   └── go.sum
 ├── frontend/
 │   ├── public/                        # 静态资源 (favicon, etc.)
 │   ├── src/
