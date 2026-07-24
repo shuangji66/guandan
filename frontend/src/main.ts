@@ -7,4 +7,4 @@ import './styles/index.css'
 const app = createApp(App)
 app.use(pinia)
 app.use(router)
-app.mount('#root')
+app.mount('#app')

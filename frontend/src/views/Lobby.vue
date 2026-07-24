@@ -113,6 +113,7 @@ onMounted(() => {
 
 function handleJoin() {
   if (!name.value.trim()) return
+  roomStore.setCurrentPlayerName(name.value)  // 新增
   sendMessage('joinRoom', { playerName: name.value, roomId: roomId.value || 'default' })
 }
 
@@ -121,6 +122,7 @@ function quickJoin(roomId: string) {
     alert('请先输入用户名')
     return
   }
+  roomStore.setCurrentPlayerName(name.value)  // 新增
   sendMessage('joinRoom', { playerName: name.value, roomId })
 }
 </script>

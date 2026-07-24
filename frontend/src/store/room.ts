@@ -8,12 +8,24 @@ export const useRoomStore = defineStore('room', () => {
   const mySeat = ref(-1)
   const chatMessages = ref<ChatMessage[]>([])
   const roomList = ref<RoomInfo[]>([])
+  const currentPlayerName = ref('')
+
+  function setCurrentPlayerName(name: string) {
+    currentPlayerName.value = name
+  }
 
   function updateRoomState(state: RoomState) {
     roomState.value = state
     inRoom.value = true
-    const me = state.players.find((p) => p && p.id === '')
-    if (me) mySeat.value = me.seatIndex
+    // 根据用户名匹配自己的座位
+    const me = state.players.find(
+      (p): p is Player => p !== null && p.name === currentPlayerName.value
+    )
+    if (me) {
+      mySeat.value = me.seatIndex
+    } else {
+      mySeat.value = -1
+    }
   }
 
   function addChatMessage(msg: ChatMessage) {
@@ -37,6 +49,8 @@ export const useRoomStore = defineStore('room', () => {
     mySeat,
     chatMessages,
     roomList,
+    currentPlayerName,
+    setCurrentPlayerName,
     updateRoomState,
     addChatMessage,
     setRoomList,

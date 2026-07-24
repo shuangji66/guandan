@@ -1,11 +1,11 @@
 <template>
   <div
     :class="[
-      'absolute flex flex-col items-center p-4 rounded-lg transition-colors',
-      pos,
+      'flex flex-col items-center p-4 rounded-lg transition-colors',
       isTeammate ? 'bg-blue-900/40 border-2 border-blue-400' : 'bg-black/20',
       !gameExists && !player ? 'cursor-pointer hover:bg-white/10' : '',
     ]"
+    :style="positionStyle"
     @click="onClickSeat"
   >
     <!-- 聊天气泡 -->
@@ -22,7 +22,6 @@
       <div v-if="isTeammate" class="absolute -top-1 -right-1 bg-blue-500 text-xs text-white px-1 rounded">友</div>
       <div v-if="isOpponent" class="absolute -top-1 -right-1 bg-red-500 text-xs text-white px-1 rounded">敌</div>
       <div v-if="isHost" class="absolute -bottom-1 -right-1 text-xs bg-yellow-500 text-black px-1 rounded font-bold border border-white">Host</div>
-      <!-- 名次徽章 -->
       <div
         v-if="winnerLabel"
         :class="[
@@ -85,13 +84,29 @@ const props = defineProps<{
   winnerLabel?: string | null
   chatBubble?: string | null
   isMyTurn?: boolean
-  pos: string   // tailwind position classes
   gameExists?: boolean
+  // 定位属性（可选）
+  top?: string
+  left?: string
+  right?: string
+  transform?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'clickSeat', seat: number): void
 }>()
+
+// 构建内联样式对象，强制 position: absolute
+const positionStyle = computed(() => {
+  const style: Record<string, string> = {
+    position: 'absolute',
+  }
+  if (props.top) style.top = props.top
+  if (props.left) style.left = props.left
+  if (props.right) style.right = props.right
+  if (props.transform) style.transform = props.transform
+  return style
+})
 
 const avatarText = computed(() => {
   if (props.player) return props.player.name[0].toUpperCase()

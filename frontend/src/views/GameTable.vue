@@ -2,57 +2,32 @@
   <div class="relative w-full h-screen bg-[#1e1e1e] overflow-hidden flex items-center justify-center font-mono">
     <div class="absolute inset-20 border-2 border-[#333333] rounded-xl opacity-50 pointer-events-none"></div>
 
-    <!-- 玩家区域 -->
-    <PlayerArea
-      :player="topPlayer"
-      :seat="topSeat"
-      :hand-count="topHandCount"
-      :is-teammate="topIsTeammate"
-      :is-opponent="topIsOpponent"
-      :action="topAction"
-      :winner-label="topWinnerLabel"
-      :chat-bubble="topChatBubble"
-      :is-my-turn="gameState?.currentTurn === topSeat"
-      pos="top-4 left-1/2 -translate-x-1/2"
-      @click-seat="handleSwitchSeat"
-    />
-    <PlayerArea
-      :player="leftPlayer"
-      :seat="leftSeat"
-      :hand-count="leftHandCount"
-      :is-teammate="leftIsTeammate"
-      :is-opponent="leftIsOpponent"
-      :action="leftAction"
-      :winner-label="leftWinnerLabel"
-      :chat-bubble="leftChatBubble"
-      :is-my-turn="gameState?.currentTurn === leftSeat"
-      pos="left-8 top-1/2 -translate-y-1/2"
-      @click-seat="handleSwitchSeat"
-    />
-    <PlayerArea
-      :player="rightPlayer"
-      :seat="rightSeat"
-      :hand-count="rightHandCount"
-      :is-teammate="rightIsTeammate"
-      :is-opponent="rightIsOpponent"
-      :action="rightAction"
-      :winner-label="rightWinnerLabel"
-      :chat-bubble="rightChatBubble"
-      :is-my-turn="gameState?.currentTurn === rightSeat"
-      pos="right-8 top-1/2 -translate-y-1/2"
-      @click-seat="handleSwitchSeat"
-    />
+    <!-- 顶部玩家 -->
+    <PlayerArea top="1rem" left="50%" transform="translateX(-50%)" :player="topPlayer" :seat="topSeat"
+      :hand-count="topHandCount" :is-teammate="topIsTeammate" :is-opponent="topIsOpponent" :action="topAction"
+      :winner-label="topWinnerLabel" :chat-bubble="topChatBubble" :is-my-turn="gameState?.currentTurn === topSeat"
+      :game-exists="!!gameState" @click-seat="handleSwitchSeat" />
+
+    <!-- 左侧玩家 -->
+    <PlayerArea left="2rem" top="50%" transform="translateY(-50%)" :player="leftPlayer" :seat="leftSeat"
+      :hand-count="leftHandCount" :is-teammate="leftIsTeammate" :is-opponent="leftIsOpponent" :action="leftAction"
+      :winner-label="leftWinnerLabel" :chat-bubble="leftChatBubble" :is-my-turn="gameState?.currentTurn === leftSeat"
+      :game-exists="!!gameState" @click-seat="handleSwitchSeat" />
+
+    <!-- 右侧玩家 -->
+    <PlayerArea right="2rem" top="50%" transform="translateY(-50%)" :player="rightPlayer" :seat="rightSeat"
+      :hand-count="rightHandCount" :is-teammate="rightIsTeammate" :is-opponent="rightIsOpponent" :action="rightAction"
+      :winner-label="rightWinnerLabel" :chat-bubble="rightChatBubble" :is-my-turn="gameState?.currentTurn === rightSeat"
+      :game-exists="!!gameState" @click-seat="handleSwitchSeat" />
 
     <!-- 聊天框 -->
-    <ChatBox
-      :messages="chatMessages"
-      @send="handleSendChat"
-    />
+    <ChatBox :messages="chatMessages" @send="handleSendChat" />
 
     <!-- 等级显示 + 强制结束 -->
     <div v-if="gameState" class="absolute top-4 left-4 flex flex-col gap-2 items-start z-50">
       <div class="text-[#d4d4d4] font-bold text-xl bg-[#252526] border border-[#333333] px-4 py-2 rounded shadow-lg">
-        <span class="text-[#569cd6]">const</span> <span class="text-[#9cdcfe]">Level</span> = <span class="text-[#b5cea8]">{{ gameState.level }}</span>;
+        <span class="text-[#569cd6]">const</span> <span class="text-[#9cdcfe]">Level</span> =
+        <span class="text-[#b5cea8]">{{ gameState.level }}</span>;
       </div>
       <button
         v-if="mySeat === 0"
@@ -64,7 +39,7 @@
     </div>
 
     <!-- 中间区域：上一手牌 + 等待/开始 -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40">
       <div v-if="gameState?.lastHand" class="bg-green-700/50 p-4 rounded-lg flex flex-col items-center">
         <div class="text-white mb-2 font-bold">{{ getPlayerName(gameState.lastHand.playerIndex) }} 出牌:</div>
         <div class="flex -space-x-8">
@@ -108,18 +83,16 @@
     <!-- 底部：技能卡 + 操作按钮 + 手牌 -->
     <div class="absolute bottom-0 w-full flex flex-col items-center pb-4 z-20 pointer-events-none">
       <!-- 技能卡 -->
-      <div v-if="gameState?.gameMode === GameMode.Skill && gameState.mySkillCards?.length" class="mb-4 pointer-events-auto flex flex-col items-center">
+      <div v-if="gameState?.gameMode === GameMode.Skill && gameState.mySkillCards?.length"
+        class="mb-4 pointer-events-auto flex flex-col items-center">
         <div class="text-purple-400 text-sm mb-2 font-bold">我的技能卡</div>
         <div class="flex gap-3">
-          <SkillCardButton
-            v-for="skill in gameState.mySkillCards"
-            :key="skill.id"
-            :skill="skill"
+          <SkillCardButton v-for="skill in gameState.mySkillCards" :key="skill.id" :skill="skill"
             @click="handleSkillClick(skill)"
-            :disabled="gameState.currentTurn !== mySeat || gameState.phase !== 'Playing'"
-          />
+            :disabled="gameState.currentTurn !== mySeat || gameState.phase !== 'Playing'" />
         </div>
-        <div v-if="gameState.currentTurn === mySeat && gameState.phase === 'Playing'" class="text-xs text-gray-400 mt-1">
+        <div v-if="gameState.currentTurn === mySeat && gameState.phase === 'Playing'"
+          class="text-xs text-gray-400 mt-1">
           点击技能卡使用（使用后仍可出牌）
         </div>
       </div>
@@ -153,20 +126,14 @@
       </div>
 
       <!-- 手牌 -->
-      <HandArea
-        :cards="myCards"
-        :level="gameState?.level || 2"
-        :view-mode="viewMode"
-        :selected-ids="selectedCardIds"
-        :highlighted-ids="highlightedIds"
-        :straight-flush-ids="straightFlushIds"
-        @toggle-select="toggleSelect"
-      />
+      <HandArea :cards="myCards" :level="gameState?.level || 2" :view-mode="viewMode" :selected-ids="selectedCardIds"
+        :highlighted-ids="highlightedIds" :straight-flush-ids="straightFlushIds" @toggle-select="toggleSelect" />
       <div class="text-white font-bold mt-2">{{ myPlayer?.name }} (Me)</div>
     </div>
 
     <!-- 分数结算 -->
-    <div v-if="gameState?.phase === 'Score'" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white z-50">
+    <div v-if="gameState?.phase === 'Score'"
+      class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white z-50">
       <h1 class="text-6xl font-bold mb-8 text-yellow-400">本局结束</h1>
       <div class="text-2xl mb-4">
         获胜顺序: {{ gameState.winners.map(w => getPlayerName(w)).join(' → ') }}
@@ -201,26 +168,16 @@
     </div>
 
     <!-- 目标选择弹窗 -->
-    <TargetSelector
-      v-if="uiStore.showTargetSelector"
-      :skill-type="uiStore.targetSelectorSkill?.type"
-      :players="targetPlayers"
-      :my-seat="mySeat"
-      @select="handleTargetSelect"
-      @cancel="uiStore.closeTargetSelector()"
-    />
+    <TargetSelector v-if="uiStore.showTargetSelector" :skill-type="uiStore.targetSelectorSkill?.type"
+      :players="targetPlayers" :my-seat="mySeat" @select="handleTargetSelect" @cancel="uiStore.closeTargetSelector()" />
 
     <!-- 历史记录 -->
-    <GameHistory
-      v-if="uiStore.showHistory"
-      :history="gameState?.history || []"
-      :current-round="gameState?.currentRound || 1"
-      @close="uiStore.showHistory = false"
-    />
+    <GameHistory v-if="uiStore.showHistory" :history="gameState?.history || []"
+      :current-round="gameState?.currentRound || 1" @close="uiStore.showHistory = false" />
     <button
       v-if="gameState"
       @click="uiStore.showHistory = true"
-      class="fixed top-4 right-4 z-40 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg font-medium transition flex items-center gap-2"
+      class="fixed top-4 right-[280px] z-30 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg font-medium transition flex items-center gap-2"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -233,20 +190,21 @@
 
     <!-- 调试信息（开发时使用） -->
     <div v-if="gameState" class="absolute bottom-0 left-0 text-xs text-gray-500 p-2 pointer-events-none">
-      [Debug] mySeat={{ mySeat }}, currentTurn={{ gameState.currentTurn }}, phase={{ gameState.phase }}, isMyTurn={{ gameState.currentTurn === mySeat ? 'true' : 'false' }}
+      [Debug] mySeat={{ mySeat }}, currentTurn={{ gameState.currentTurn }}, phase={{ gameState.phase }}, isMyTurn={{
+      gameState.currentTurn === mySeat ? 'true' : 'false' }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+  import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoomStore } from '@/store/room'
 import { useGameStore } from '@/store/game'
 import { useUIStore } from '@/store/ui'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { useGameEvents } from '@/composables/useGameEvents'
-import { GameMode, GamePhase, HandType, SkillCardType, type Card, type Hand, type Player } from '@/types'
+import { GameMode, GamePhase, HandType, SkillCardType, type Card, type Hand, type Player, Suit, Rank } from '@/types'
 import CardComponent from '@/components/Card.vue'
 import PlayerArea from '@/components/PlayerArea.vue'
 import ChatBox from '@/components/ChatBox.vue'
@@ -254,7 +212,7 @@ import HandArea from '@/components/HandArea.vue'
 import SkillCardButton from '@/components/SkillCardButton.vue'
 import TargetSelector from '@/components/TargetSelector.vue'
 import GameHistory from '@/components/GameHistory.vue'
-import { getLogicValue, getAllPossibleHandTypes, getHandDescription } from '@/utils/rules' // 假设有工具函数
+import { getLogicValue, getAllPossibleHandTypes, getHandDescription } from '@/utils/rules'
 
 const router = useRouter()
 const roomStore = useRoomStore()
@@ -296,8 +254,6 @@ function getWinnerLabel(seat: number): string | null {
   return ['头游', '二游', '三游', '末游'][idx]
 }
 function getChatBubble(seat: number): string | null {
-  // 从 chatMessages 中取最新一条该座位消息，并显示5秒后消失（由父组件管理）
-  // 这里我们使用简单存储，在 store 中已有消息列表，我们取最近一条
   const msgs = chatMessages.value.filter(m => m.seatIndex === seat)
   if (msgs.length === 0) return null
   return msgs[msgs.length - 1].text
@@ -331,9 +287,11 @@ const rightChatBubble = computed(() => getChatBubble(rightSeat.value))
 const topIsTeammate = computed(() => (topSeat.value % 2) === (mySeat.value % 2) && topSeat.value !== mySeat.value)
 const leftIsTeammate = computed(() => (leftSeat.value % 2) === (mySeat.value % 2) && leftSeat.value !== mySeat.value)
 const rightIsTeammate = computed(() => (rightSeat.value % 2) === (mySeat.value % 2) && rightSeat.value !== mySeat.value)
+
 const topIsOpponent = computed(() => !topIsTeammate.value && topSeat.value !== mySeat.value)
 const leftIsOpponent = computed(() => !leftIsTeammate.value && leftSeat.value !== mySeat.value)
-const rightIsOpponent = computed(() => !rightIsOpponent.value && rightSeat.value !== mySeat.value)
+// 修复 rightIsOpponent 计算错误
+const rightIsOpponent = computed(() => !rightIsTeammate.value && rightSeat.value !== mySeat.value)
 
 // 我的牌
 const myCards = computed(() => {
@@ -423,7 +381,6 @@ function handlePass() {
 }
 
 function handleHint() {
-  // 简单实现：选中最小单张（或使用Bot逻辑，暂略）
   if (myCards.value.length) {
     selectedCardIds.value = [myCards.value[myCards.value.length - 1].id]
   }
@@ -511,7 +468,6 @@ function handleSendChat(text: string) {
 
 // 离开房间时重置
 onMounted(() => {
-  // 注册消息处理
-  // 已经在 useGameEvents 中注册，但我们需要确保 store 更新
+  // 注册消息处理已由 useGameEvents 完成
 })
 </script>
