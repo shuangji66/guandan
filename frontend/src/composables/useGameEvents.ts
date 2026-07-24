@@ -40,12 +40,10 @@ export function useGameEvents() {
   }
 
   function handleMessage(msg: ServerMessage) {
+    console.log('[GameEvents] handling:', msg.type, msg.payload)
     const handler = handlers[msg.type]
-    if (handler) {
-      handler(msg.payload)
-    } else {
-      console.warn('Unknown message type:', msg.type)
-    }
+    if (handler) handler(msg.payload)
+    else console.warn('Unknown message type:', msg.type)
   }
 
   return { handleMessage }

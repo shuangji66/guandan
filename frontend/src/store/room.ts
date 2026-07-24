@@ -15,17 +15,15 @@ export const useRoomStore = defineStore('room', () => {
   }
 
   function updateRoomState(state: RoomState) {
+    console.log('[RoomStore] updateRoomState:', state)
     roomState.value = state
     inRoom.value = true
-    // 根据用户名匹配自己的座位
     const me = state.players.find(
       (p): p is Player => p !== null && p.name === currentPlayerName.value
     )
-    if (me) {
-      mySeat.value = me.seatIndex
-    } else {
-      mySeat.value = -1
-    }
+    console.log('[RoomStore] currentPlayerName:', currentPlayerName.value, 'me:', me)
+    if (me) mySeat.value = me.seatIndex
+    else mySeat.value = -1
   }
 
   function addChatMessage(msg: ChatMessage) {

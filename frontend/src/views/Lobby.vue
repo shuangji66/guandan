@@ -4,7 +4,8 @@
 
     <div class="flex gap-6 items-start">
       <!-- 加入表单 -->
-      <form @submit.prevent="handleJoin" class="bg-[#252526] p-8 rounded-lg shadow-xl border border-[#333333] text-gray-300 flex flex-col gap-4 w-80">
+      <form @submit.prevent="handleJoin"
+        class="bg-[#252526] p-8 rounded-lg shadow-xl border border-[#333333] text-gray-300 flex flex-col gap-4 w-80">
         <div>
           <label class="block text-sm font-bold mb-2 text-[#9cdcfe]">Username</label>
           <input
@@ -38,19 +39,18 @@
       </form>
 
       <!-- 房间列表 -->
-      <div v-if="showRoomList" class="bg-[#252526] p-6 rounded-lg shadow-xl border border-[#333333] w-96 max-h-96 overflow-y-auto">
+      <div v-if="showRoomList"
+        class="bg-[#252526] p-6 rounded-lg shadow-xl border border-[#333333] w-96 max-h-96 overflow-y-auto">
         <h2 class="text-xl font-bold mb-4 text-[#569cd6]">活跃房间</h2>
         <div v-if="roomList.length === 0" class="text-gray-500 text-center py-8">暂无活跃房间</div>
         <div v-else class="flex flex-col gap-2">
-          <div
-            v-for="room in roomList"
-            :key="room.id"
+          <div v-for="room in roomList" :key="room.id"
             class="bg-[#1e1e1e] p-4 rounded border border-[#3c3c3c] hover:border-[#007acc] transition-colors cursor-pointer"
-            @click="quickJoin(room.id)"
-          >
+            @click="quickJoin(room.id)">
             <div class="flex justify-between items-start mb-2">
               <div class="font-bold text-[#9cdcfe]">房间: {{ room.id }}</div>
-              <div :class="room.inGame ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'" class="text-xs px-2 py-1 rounded">
+              <div :class="room.inGame ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'"
+                class="text-xs px-2 py-1 rounded">
                 {{ room.inGame ? '游戏中' : '等待中' }}
               </div>
             </div>
@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+  import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoomStore } from '@/store/room'
 import { useWebSocket } from '@/composables/useWebSocket'
@@ -78,7 +78,7 @@ import { GameMode } from '@/types'
 
 const router = useRouter()
 const roomStore = useRoomStore()
-const { sendMessage, onMessage, offMessage } = useWebSocket('/ws')
+const { sendMessage, onMessage, offMessage } = useWebSocket()
 const { handleMessage } = useGameEvents()
 
 const name = ref('')
@@ -86,34 +86,40 @@ const roomId = ref('default')
 const showRoomList = ref(false)
 const roomList = ref(roomStore.roomList)
 
-// 监听 roomList 更新
+// 监听进入房间
+watch(() => roomStore.inRoom, (val) => {
+  if (val) router.push('/game')
+})
+
 onMounted(() => {
-  // 注册消息处理
-  onMessage('roomList', (payload) => {
-    roomList.value = payload
+  // 注册所有需要处理的消息类型，交给 handleMessage 统一分发
+  const types = ['roomState', 'error', 'roomList']
+  types.forEach(type => {
+    onMessage(type, (payload) => {
+      handleMessage({ type, payload })
+    })
   })
-  // 当成功加入房间，路由跳转
-  onMessage('roomState', () => {
-    router.push('/game')
-  })
+
   // 获取房间列表
   sendMessage('getRoomList', {})
-  // 定期刷新
+
+  // 定期刷新房间列表
   const interval = setInterval(() => {
     if (showRoomList.value) {
       sendMessage('getRoomList', {})
     }
   }, 3000)
+
   onUnmounted(() => {
     clearInterval(interval)
-    offMessage('roomList')
-    offMessage('roomState')
+    types.forEach(type => offMessage(type))
   })
 })
 
 function handleJoin() {
   if (!name.value.trim()) return
-  roomStore.setCurrentPlayerName(name.value)  // 新增
+  console.log('[Lobby] handleJoin, name:', name.value, 'roomId:', roomId.value)
+  roomStore.setCurrentPlayerName(name.value)
   sendMessage('joinRoom', { playerName: name.value, roomId: roomId.value || 'default' })
 }
 

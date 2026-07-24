@@ -218,7 +218,8 @@ const router = useRouter()
 const roomStore = useRoomStore()
 const gameStore = useGameStore()
 const uiStore = useUIStore()
-const { sendMessage } = useWebSocket('/ws')
+const { sendMessage, onMessage, offMessage } = useWebSocket()
+const { handleMessage } = useGameEvents()
 
 const viewMode = ref<'normal' | 'stacked'>('normal')
 const selectedCardIds = ref<string[]>([])
@@ -468,6 +469,12 @@ function handleSendChat(text: string) {
 
 // 离开房间时重置
 onMounted(() => {
-  // 注册消息处理已由 useGameEvents 完成
+  // 注册所有消息类型，统一交给 handleMessage 处理
+  const types = ['roomState', 'gameState', 'chatMessage', 'error', 'gameOver', 'matchOver', 'gameTerminated', 'roomList', 'historyUpdate']
+  types.forEach(type => {
+    onMessage(type, (payload) => {
+      handleMessage({ type, payload })
+    })
+  })
 })
 </script>
